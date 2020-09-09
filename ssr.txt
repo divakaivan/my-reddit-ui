@@ -1,0 +1,4 @@
+me -> browse some url
+-> makes a request to nextjs server
+-> nextjs makes a request to our gql server (and grab the posts)
+-> building the html and sending it back to the browser
