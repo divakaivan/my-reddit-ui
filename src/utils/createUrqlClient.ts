@@ -1,4 +1,4 @@
-import { cacheExchange, Resolver } from "@urql/exchange-graphcache";
+import { cacheExchange, Resolver, Cache } from "@urql/exchange-graphcache";
 import gql from "graphql-tag";
 import Router from "next/router";
 import {
@@ -71,6 +71,14 @@ export const cursorPagination = (): Resolver => {
   };
 };
 
+const invalidateAllPosts = (cache: Cache) => {
+  const allFields = cache.inspectFields("Query");
+  const fieldInfos = allFields.filter((info) => info.fieldName === "posts");
+  fieldInfos.forEach((fi) => {
+    cache.invalidate("Query", "posts", fi.arguments || {});
+  });
+};
+
 export const createUrqlClient = (ssrExchange: any, ctx: any) => {
   let cookie;
   if (isServer()) cookie = ctx?.req?.headers?.cookie;
@@ -133,13 +141,7 @@ export const createUrqlClient = (ssrExchange: any, ctx: any) => {
               }
             },
             createPost: (_result, _args, cache, _info) => {
-              const allFields = cache.inspectFields("Query");
-              const fieldInfos = allFields.filter(
-                (info) => info.fieldName === "posts"
-              );
-              fieldInfos.forEach((fi) => {
-                cache.invalidate("Query", "posts", fi.arguments || {});
-              });
+              invalidateAllPosts(cache);
               // after creating post, invalidate the cache(for all posts present) so that the new post is immediately added
               // without needing a refresh
             },
@@ -166,6 +168,7 @@ export const createUrqlClient = (ssrExchange: any, ctx: any) => {
                   }
                 }
               );
+              invalidateAllPosts(cache);
             },
             register: (_result, _args, cache, _info) => {
               betterUpdateQuery<RegisterMutation, MeQuery>(
