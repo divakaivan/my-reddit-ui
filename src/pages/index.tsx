@@ -13,9 +13,7 @@ import React, { useState } from "react";
 import EditDeletePostButtons from "../components/EditDeletePostButtons";
 import Layout from "../components/Layout";
 import UpdootSection from "../components/UpdootSection";
-import {
-  usePostsQuery,
-} from "../generated/graphql";
+import { usePostsQuery } from "../generated/graphql";
 import { createUrqlClient } from "../utils/createUrqlClient";
 
 const Index = () => {
@@ -24,9 +22,10 @@ const Index = () => {
     cursor: null as null | string,
   });
 
-  const [{ data, fetching }] = usePostsQuery({ variables });
+  const [{ data, error, fetching }] = usePostsQuery({ variables });
 
-  if (!fetching && !data) return <div>posts query failed for some reason</div>;
+  if (!fetching && !data)
+    return <div>posts query failed for some reason: {error?.message}</div>;
 
   return (
     <Layout>
